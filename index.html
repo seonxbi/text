@@ -24,7 +24,7 @@
 </head>
 <body>
   <h1>🔄 단어 치환기</h1>
-  <button onclick="toggleDarkMode()">다크모드 전환</button>
+  <button onclick="toggleDarkMode()">🌗 다크모드 전환</button>
 
   <h3>① 문장 입력</h3>
   <div style="position:relative;">
@@ -32,14 +32,14 @@
     <button class="copy-btn" onclick="copyText('inputText')">복사</button>
   </div>
 
-  <h3>② 단어쌍 (총 <span id="pairCount">0</span>개)</h3>
+  <h3>② 단어쌍 관리 (총 <span id="pairCount">0</span>개)</h3>
   <input type="file" id="csvUpload" accept=".csv">
   <div id="wordPairs"></div>
 
   <div class="controls">
     <button onclick="addPair()">+ 단어쌍 추가</button>
     <button onclick="replaceWords()">🔄 변환</button>
-    <button class="download-btn" onclick="downloadCSV()">Download CSV</button>
+    <button class="download-btn" onclick="downloadCSV()">📤 CSV 저장</button>
   </div>
 
   <h3>③ 변환된 문장</h3>
@@ -48,9 +48,10 @@
     <button class="copy-btn" onclick="copyText('output')">복사</button>
   </div>
 
+  <!-- CSV 파싱용 라이브러리 -->
   <script src="https://cdn.jsdelivr.net/npm/[email protected]/papaparse.min.js"></script>
+
   <script>
-    // 초기 로드
     document.addEventListener('DOMContentLoaded', () => {
       addPair(); addPair();
       document.getElementById('csvUpload').addEventListener('change', handleCsvUpload);
@@ -76,29 +77,40 @@
       updateCount();
     }
 
-    function deletePair(btn) { btn.parentElement.remove(); updateCount(); }
+    function deletePair(btn) {
+      btn.parentElement.remove();
+      updateCount();
+    }
+
     function moveUp(btn) {
       const cur = btn.parentElement, prev = cur.previousElementSibling;
       if (prev) cur.parentNode.insertBefore(cur, prev);
     }
+
     function moveDown(btn) {
       const cur = btn.parentElement, nxt = cur.nextElementSibling;
       if (nxt) cur.parentNode.insertBefore(nxt, cur);
     }
 
     function replaceWords() {
-      let text = inputText.value, disp = text;
-      document.querySelectorAll('.pair').forEach(({querySelector}) => {
-        const from = querySelector('.from').value.trim();
-        const to = querySelector('.to').value.trim();
-        if (from) disp = disp.replace(new RegExp(from, 'gi'), _ => `<mark>${to}</mark>`);
+      let text = inputText.value;
+      let disp = text;
+      document.querySelectorAll('.pair').forEach(pair => {
+        const from = pair.querySelector('.from').value.trim();
+        const to = pair.querySelector('.to').value.trim();
+        if (from) {
+          const regex = new RegExp(from, 'gi');
+          disp = disp.replace(regex, match => `<mark>${to}</mark>`);
+        }
       });
       output.innerHTML = disp;
     }
 
     function copyText(id) {
       const el = document.getElementById(id);
-      navigator.clipboard.writeText(el.value || el.innerText).then(_ => alert('복사되었습니다!'));
+      navigator.clipboard.writeText(el.value || el.innerText).then(() => {
+        alert('복사되었습니다!');
+      });
     }
 
     function updateCount() {
@@ -112,19 +124,27 @@
           const t = p.querySelector('.to').value;
           return `"${f}","${t}"`;
         }).join('\n');
-      const blob = new Blob([rows], { type: 'text/csv' });
+      const BOM = '\uFEFF'; // 한글 깨짐 방지
+      const blob = new Blob([BOM + rows], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = 'words.csv'; a.click();
+      a.href = url;
+      a.download = '단어쌍.csv';
+      a.click();
       URL.revokeObjectURL(url);
     }
 
     function handleCsvUpload(e) {
       const file = e.target.files[0];
+      if (!file) return;
       Papa.parse(file, {
-        complete: ({data}) => {
+        complete: ({ data }) => {
           document.getElementById('wordPairs').innerHTML = '';
-          data.forEach(([f, t]) => addPair(f.trim(), t.trim()));
+          data.forEach(([f, t]) => {
+            if (f && t) addPair(f.trim(), t.trim());
+          });
+          updateCount();
+          replaceWords(); // 업로드 즉시 적용
         }
       });
     }
