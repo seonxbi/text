@@ -33,14 +33,12 @@
   </div>
 
   <h3>② 단어쌍 관리 (총 <span id="pairCount">0</span>개)</h3>
-  <input type="file" id="csvUpload" accept=".csv">
   <div id="wordPairs"></div>
 
   <div class="controls">
     <button onclick="addPair()">+ 단어쌍 추가</button>
-    <button onclick="applyUploadedPairs()">📥 반영</button>
     <button onclick="replaceWords()">🔄 변환</button>
-    <button class="download-btn" onclick="downloadCSV()">📤 CSV 저장</button>
+    <button class="download-btn" onclick="downloadTXT()">📤 TXT 저장</button>
   </div>
 
   <h3>③ 변환된 문장</h3>
@@ -49,15 +47,11 @@
     <button class="copy-btn" onclick="copyText('output')">복사</button>
   </div>
 
-  <!-- PapaParse 라이브러리 -->
-  <script src="https://cdn.jsdelivr.net/npm/[email protected]/papaparse.min.js"></script>
-
   <script>
     let tempPairs = [];
 
     document.addEventListener('DOMContentLoaded', () => {
       addPair(); addPair();
-      document.getElementById('csvUpload').addEventListener('change', handleCsvUpload);
       updateCount();
     });
 
@@ -120,62 +114,22 @@
       document.getElementById('pairCount').innerText = document.querySelectorAll('.pair').length;
     }
 
-    function downloadCSV() {
-      const rows = Array.from(document.querySelectorAll('.pair'))
+    // TXT로 단어쌍 저장
+    function downloadTXT() {
+      const pairsText = Array.from(document.querySelectorAll('.pair'))
         .map(p => {
           const f = p.querySelector('.from').value;
           const t = p.querySelector('.to').value;
-          return `"${f}","${t}"`;
+          return `원본: ${f}, 수정: ${t}`;
         }).join('\n');
-      const BOM = '\uFEFF'; // 한글 깨짐 방지
-      const blob = new Blob([BOM + rows], { type: 'text/csv;charset=utf-8;' });
+
+      const blob = new Blob([pairsText], { type: 'text/plain;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = '단어쌍.csv';
+      a.download = '단어쌍.txt';
       a.click();
       URL.revokeObjectURL(url);
-    }
-
-    function handleCsvUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      Papa.parse(file, {
-        skipEmptyLines: true,
-        complete: ({ data }) => {
-          tempPairs = [];
-
-          data.forEach(row => {
-            if (Array.isArray(row) && row.length >= 2) {
-              let from = row[0]?.trim().replace(/^"|"$/g, '');
-              let to = row[1]?.trim().replace(/^"|"$/g, '');
-              if (from && to) {
-                tempPairs.push([from, to]);
-              }
-            }
-          });
-
-          console.log(`${tempPairs.length}개의 단어쌍이 추출되었습니다.`);
-          alert(`${tempPairs.length}개의 단어쌍을 불러왔습니다.\n[📥 반영] 버튼을 눌러 적용하세요.`);
-        }
-      });
-    }
-
-    function applyUploadedPairs() {
-      if (tempPairs.length === 0) {
-        alert('먼저 CSV 파일을 업로드하세요!');
-        return;
-      }
-
-      document.getElementById('wordPairs').innerHTML = '';
-
-      tempPairs.forEach(([from, to]) => {
-        addPair(from, to);
-      });
-
-      updateCount();
-      replaceWords();
     }
   </script>
 </body>
