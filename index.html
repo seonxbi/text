@@ -65,12 +65,14 @@
       pair.innerHTML = `
         <input class="from" placeholder="원본 단어" value="${from}">
         <input class="to" placeholder="수정 단어" value="${to}">
+        <span class="count">횟수: 0</span>
         <button class="move-btn" onclick="moveUp(this)">↑</button>
         <button class="move-btn" onclick="moveDown(this)">↓</button>
         <button class="delete-btn" onclick="deletePair(this)">❌</button>
       `;
       document.getElementById('wordPairs').appendChild(pair);
       pair.querySelectorAll('input').forEach(el => el.addEventListener('input', updateCount));
+      updateWordCount(pair);
       updateCount();
     }
 
@@ -114,13 +116,22 @@
       document.getElementById('pairCount').innerText = document.querySelectorAll('.pair').length;
     }
 
-    // TXT로 단어쌍 저장
+    // 각 단어쌍의 출현 횟수 업데이트
+    function updateWordCount(pair) {
+      const from = pair.querySelector('.from').value.trim();
+      if (from) {
+        const count = (inputText.value.match(new RegExp(from, 'gi')) || []).length;
+        pair.querySelector('.count').innerText = `횟수: ${count}`;
+      }
+    }
+
+    // 단어쌍을 TXT로 저장
     function downloadTXT() {
       const pairsText = Array.from(document.querySelectorAll('.pair'))
         .map(p => {
           const f = p.querySelector('.from').value;
           const t = p.querySelector('.to').value;
-          return `원본: ${f}, 수정: ${t}`;
+          return `${f},${t}`;
         }).join('\n');
 
       const blob = new Blob([pairsText], { type: 'text/plain;charset=utf-8;' });
@@ -131,6 +142,13 @@
       a.click();
       URL.revokeObjectURL(url);
     }
+
+    // 문장 입력 시 단어의 등장 횟수 실시간 반영
+    document.getElementById('inputText').addEventListener('input', () => {
+      document.querySelectorAll('.pair').forEach(pair => {
+        updateWordCount(pair);
+      });
+    });
   </script>
 </body>
 </html>
