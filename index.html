@@ -3,14 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <title>단어 치환기</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
-    textarea, input { width: 100%; padding: 8px; margin-bottom: 12px; }
-    .pair { display: flex; gap: 10px; margin-bottom: 8px; }
-    .pair input { flex: 1; }
-    .controls { display: flex; gap: 10px; margin-bottom: 20px; }
-    button { padding: 8px 14px; }
-    #outputBox, #inputBox { position: relative; }
+    body {
+      font-family: sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+
+    .pair {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .pair input {
+      flex: 1 1 40%;
+      min-width: 40%;
+    }
+
+    .pair button {
+      padding: 6px 10px;
+      font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    #outputBox, #inputBox {
+      position: relative;
+    }
+
     .copy-btn {
       position: absolute;
       top: 5px;
@@ -19,9 +58,31 @@
       font-size: 12px;
       cursor: pointer;
     }
+
     #output, #inputText {
       white-space: pre-wrap;
       background: #f9f9f9;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .delete-btn {
+      background: #ffdddd;
+      border: 1px solid #ff9999;
+      color: #a00;
+    }
+
+    .move-btn {
+      background: #eef;
+      border: 1px solid #88f;
+      color: #004;
+    }
+
+    @media screen and (max-width: 500px) {
+      .pair input {
+        min-width: 100%;
+        flex: 1 1 100%;
+      }
     }
   </style>
 </head>
@@ -30,19 +91,26 @@
 
   <h3>① 문장을 입력하세요:</h3>
   <div id="inputBox">
-    <textarea id="inputText" placeholder="여기에 문장을 입력하세요."></textarea>
+    <textarea id="inputText" rows="5" placeholder="여기에 문장을 입력하세요."></textarea>
     <button class="copy-btn" onclick="copyText('inputText')">복사</button>
   </div>
 
   <h3>② 바꿀 단어를 입력하세요:</h3>
   <div id="wordPairs">
+    <!-- 기본 2개 쌍 -->
     <div class="pair">
       <input placeholder="원본 단어" class="from">
       <input placeholder="수정 단어" class="to">
+      <button class="move-btn" onclick="moveUp(this)">↑</button>
+      <button class="move-btn" onclick="moveDown(this)">↓</button>
+      <button class="delete-btn" onclick="deletePair(this)">❌</button>
     </div>
     <div class="pair">
       <input placeholder="원본 단어" class="from">
       <input placeholder="수정 단어" class="to">
+      <button class="move-btn" onclick="moveUp(this)">↑</button>
+      <button class="move-btn" onclick="moveDown(this)">↓</button>
+      <button class="delete-btn" onclick="deletePair(this)">❌</button>
     </div>
   </div>
 
@@ -64,8 +132,32 @@
       pair.innerHTML = `
         <input placeholder="원본 단어" class="from">
         <input placeholder="수정 단어" class="to">
+        <button class="move-btn" onclick="moveUp(this)">↑</button>
+        <button class="move-btn" onclick="moveDown(this)">↓</button>
+        <button class="delete-btn" onclick="deletePair(this)">❌</button>
       `;
       document.getElementById("wordPairs").appendChild(pair);
+    }
+
+    function deletePair(button) {
+      const pairDiv = button.parentElement;
+      pairDiv.remove();
+    }
+
+    function moveUp(button) {
+      const current = button.parentElement;
+      const previous = current.previousElementSibling;
+      if (previous) {
+        current.parentNode.insertBefore(current, previous);
+      }
+    }
+
+    function moveDown(button) {
+      const current = button.parentElement;
+      const next = current.nextElementSibling;
+      if (next) {
+        current.parentNode.insertBefore(next, current);
+      }
     }
 
     function replaceWords() {
@@ -78,7 +170,7 @@
         const to = toInputs[i].value.trim();
 
         if (from !== "") {
-          const regex = new RegExp(from, "g");
+          const regex = new RegExp(from, "gi"); // 대소문자 구분 없이 전체 치환
           text = text.replace(regex, to);
         }
       }
