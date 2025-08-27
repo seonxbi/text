@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>단어 치환기</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    textarea, input { width: 100%; padding: 8px; margin-bottom: 12px; }
+    .pair { display: flex; gap: 10px; margin-bottom: 8px; }
+    .pair input { flex: 1; }
+    button { padding: 10px 20px; }
+    #output { background: #f0f0f0; padding: 15px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>🔄 단어 치환기</h1>
+
+  <h3>① 문장을 입력하세요:</h3>
+  <textarea id="inputText" placeholder="여기에 문장을 입력하세요."></textarea>
+
+  <h3>② 바꿀 단어를 입력하세요:</h3>
+  <div class="pair">
+    <input id="from1" placeholder="원본 단어 1">
+    <input id="to1" placeholder="수정 단어 1">
+  </div>
+  <div class="pair">
+    <input id="from2" placeholder="원본 단어 2">
+    <input id="to2" placeholder="수정 단어 2">
+  </div>
+  <div class="pair">
+    <input id="from3" placeholder="원본 단어 3">
+    <input id="to3" placeholder="수정 단어 3">
+  </div>
+  <div class="pair">
+    <input id="from4" placeholder="원본 단어 4">
+    <input id="to4" placeholder="수정 단어 4">
+  </div>
+
+  <button onclick="replaceWords()">변환</button>
+
+  <h3>③ 변환된 문장:</h3>
+  <div id="output"></div>
+
+  <script>
+    function replaceWords() {
+      let text = document.getElementById("inputText").value;
+
+      for (let i = 1; i <= 4; i++) {
+        const from = document.getElementById("from" + i).value.trim();
+        const to = document.getElementById("to" + i).value.trim();
+
+        if (from !== "") {
+          const regex = new RegExp(from, "g"); // 여러 번 등장해도 바꾸도록
+          text = text.replace(regex, to);
+        }
+      }
+
+      document.getElementById("output").innerText = text;
+    }
+  </script>
+</body>
+</html>
