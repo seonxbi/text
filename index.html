@@ -4,58 +4,97 @@
   <meta charset="UTF-8">
   <title>단어 치환기</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
     textarea, input { width: 100%; padding: 8px; margin-bottom: 12px; }
     .pair { display: flex; gap: 10px; margin-bottom: 8px; }
     .pair input { flex: 1; }
-    button { padding: 10px 20px; }
-    #output { background: #f0f0f0; padding: 15px; white-space: pre-wrap; }
+    .controls { display: flex; gap: 10px; margin-bottom: 20px; }
+    button { padding: 8px 14px; }
+    #outputBox, #inputBox { position: relative; }
+    .copy-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    #output, #inputText {
+      white-space: pre-wrap;
+      background: #f9f9f9;
+    }
   </style>
 </head>
 <body>
   <h1>🔄 단어 치환기</h1>
 
   <h3>① 문장을 입력하세요:</h3>
-  <textarea id="inputText" placeholder="여기에 문장을 입력하세요."></textarea>
+  <div id="inputBox">
+    <textarea id="inputText" placeholder="여기에 문장을 입력하세요."></textarea>
+    <button class="copy-btn" onclick="copyText('inputText')">복사</button>
+  </div>
 
   <h3>② 바꿀 단어를 입력하세요:</h3>
-  <div class="pair">
-    <input id="from1" placeholder="원본 단어 1">
-    <input id="to1" placeholder="수정 단어 1">
-  </div>
-  <div class="pair">
-    <input id="from2" placeholder="원본 단어 2">
-    <input id="to2" placeholder="수정 단어 2">
-  </div>
-  <div class="pair">
-    <input id="from3" placeholder="원본 단어 3">
-    <input id="to3" placeholder="수정 단어 3">
-  </div>
-  <div class="pair">
-    <input id="from4" placeholder="원본 단어 4">
-    <input id="to4" placeholder="수정 단어 4">
+  <div id="wordPairs">
+    <div class="pair">
+      <input placeholder="원본 단어" class="from">
+      <input placeholder="수정 단어" class="to">
+    </div>
+    <div class="pair">
+      <input placeholder="원본 단어" class="from">
+      <input placeholder="수정 단어" class="to">
+    </div>
   </div>
 
-  <button onclick="replaceWords()">변환</button>
+  <div class="controls">
+    <button onclick="addPair()">+ 단어쌍 추가</button>
+    <button onclick="replaceWords()">🔄 변환</button>
+  </div>
 
   <h3>③ 변환된 문장:</h3>
-  <div id="output"></div>
+  <div id="outputBox">
+    <div id="output" style="min-height: 100px; border: 1px solid #ddd; padding: 10px;"></div>
+    <button class="copy-btn" onclick="copyText('output')">복사</button>
+  </div>
 
   <script>
+    function addPair() {
+      const pair = document.createElement("div");
+      pair.className = "pair";
+      pair.innerHTML = `
+        <input placeholder="원본 단어" class="from">
+        <input placeholder="수정 단어" class="to">
+      `;
+      document.getElementById("wordPairs").appendChild(pair);
+    }
+
     function replaceWords() {
       let text = document.getElementById("inputText").value;
+      const fromInputs = document.querySelectorAll(".from");
+      const toInputs = document.querySelectorAll(".to");
 
-      for (let i = 1; i <= 4; i++) {
-        const from = document.getElementById("from" + i).value.trim();
-        const to = document.getElementById("to" + i).value.trim();
+      for (let i = 0; i < fromInputs.length; i++) {
+        const from = fromInputs[i].value.trim();
+        const to = toInputs[i].value.trim();
 
         if (from !== "") {
-          const regex = new RegExp(from, "g"); // 여러 번 등장해도 바꾸도록
+          const regex = new RegExp(from, "g");
           text = text.replace(regex, to);
         }
       }
 
       document.getElementById("output").innerText = text;
+    }
+
+    function copyText(id) {
+      const element = document.getElementById(id);
+      const text = element.value || element.innerText;
+
+      navigator.clipboard.writeText(text).then(() => {
+        alert("복사되었습니다!");
+      }).catch(() => {
+        alert("복사에 실패했습니다.");
+      });
     }
   </script>
 </body>
