@@ -71,8 +71,8 @@
       pair.innerHTML = `
         <input class="from" placeholder="원본 단어" value="${from}">
         <input class="to" placeholder="수정 단어" value="${to}">
-        <button class="move-btn" onclick="moveUp(this)">↑</button>
-        <button class="move-btn" onclick="moveDown(this)">↓</button>
+        <button class="move-btn" onclick="moveUp(this)">⬆️</button>
+        <button class="move-btn" onclick="moveDown(this)">⬇</button>
         <button class="delete-btn" onclick="deletePair(this)">❌</button>
       `;
       document.getElementById('wordPairs').appendChild(pair);
@@ -156,13 +156,14 @@
             }
           });
 
+          console.log(`${tempPairs.length}개의 단어쌍이 추출되었습니다.`);
           alert(`${tempPairs.length}개의 단어쌍을 불러왔습니다.\n[📥 반영] 버튼을 눌러 적용하세요.`);
         }
       });
     }
 
     function applyUploadedPairs() {
-      if (!tempPairs.length) {
+      if (tempPairs.length === 0) {
         alert('먼저 CSV 파일을 업로드하세요!');
         return;
       }
