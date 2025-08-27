@@ -130,6 +130,7 @@
         <!-- 변환 버튼 -->
         <div class="btn-container">
             <button onclick="transformText()">변환</button>
+            <button onclick="saveTextAsFile()">TXT 저장</button>
         </div>
 
         <!-- 변환된 문장 -->
@@ -154,6 +155,7 @@
         let originalWords = [];
         let modifiedWords = [];
         
+        // 변환된 텍스트 생성
         function transformText() {
             let inputText = document.getElementById('inputText').value;
             let outputText = inputText;
@@ -173,6 +175,7 @@
             document.getElementById('outputText').innerHTML = outputText;
         }
 
+        // 단어쌍 추가
         function addNewPair() {
             let pairContainer = document.getElementById('pairContainer');
             let newPair = document.createElement('div');
@@ -188,14 +191,17 @@
             pairContainer.appendChild(newPair);
         }
 
+        // 단어쌍 제거
         function removePair(button) {
             button.parentElement.parentElement.remove();
         }
 
+        // 다크모드 전환
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
         }
 
+        // 버전 관리
         function saveVersion() {
             let inputText = document.getElementById('inputText').value;
             versions.push(inputText);
@@ -234,6 +240,16 @@
                     countSpan.textContent = (document.getElementById('inputText').value.match(new RegExp(original, 'gi')) || []).length;
                 }
             });
+        }
+
+        // TXT 파일로 저장
+        function saveTextAsFile() {
+            let outputText = document.getElementById('outputText').textContent;
+            let blob = new Blob([outputText], { type: 'text/plain' });
+            let link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '변환된_텍스트.txt';
+            link.click();
         }
     </script>
 </body>
