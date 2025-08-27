@@ -48,7 +48,7 @@
     <button class="copy-btn" onclick="copyText('output')">복사</button>
   </div>
 
-  <!-- CSV 파싱용 라이브러리 -->
+  <!-- PapaParse CDN -->
   <script src="https://cdn.jsdelivr.net/npm/[email protected]/papaparse.min.js"></script>
 
   <script>
@@ -137,14 +137,22 @@
     function handleCsvUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
+
       Papa.parse(file, {
+        skipEmptyLines: true,
         complete: ({ data }) => {
-          document.getElementById('wordPairs').innerHTML = '';
-          data.forEach(([f, t]) => {
-            if (f && t) addPair(f.trim(), t.trim());
+          document.getElementById('wordPairs').innerHTML = ''; // 초기화
+
+          data.forEach(row => {
+            if (Array.isArray(row) && row.length >= 2) {
+              let from = row[0]?.trim().replace(/^"|"$/g, '');
+              let to = row[1]?.trim().replace(/^"|"$/g, '');
+              if (from && to) addPair(from, to);
+            }
           });
+
           updateCount();
-          replaceWords(); // 업로드 즉시 적용
+          replaceWords(); // 자동 반영
         }
       });
     }
