@@ -66,6 +66,11 @@
       line-height: 1.5;
     }
 
+    #output mark {
+      background-color: yellow;
+      font-weight: bold;
+    }
+
     .delete-btn {
       background: #ffdddd;
       border: 1px solid #ff9999;
@@ -97,21 +102,7 @@
 
   <h3>② 바꿀 단어를 입력하세요:</h3>
   <div id="wordPairs">
-    <!-- 기본 2개 쌍 -->
-    <div class="pair">
-      <input placeholder="원본 단어" class="from">
-      <input placeholder="수정 단어" class="to">
-      <button class="move-btn" onclick="moveUp(this)">↑</button>
-      <button class="move-btn" onclick="moveDown(this)">↓</button>
-      <button class="delete-btn" onclick="deletePair(this)">❌</button>
-    </div>
-    <div class="pair">
-      <input placeholder="원본 단어" class="from">
-      <input placeholder="수정 단어" class="to">
-      <button class="move-btn" onclick="moveUp(this)">↑</button>
-      <button class="move-btn" onclick="moveDown(this)">↓</button>
-      <button class="delete-btn" onclick="deletePair(this)">❌</button>
-    </div>
+    <!-- 동적으로 생성 -->
   </div>
 
   <div class="controls">
@@ -126,22 +117,64 @@
   </div>
 
   <script>
-    function addPair() {
+    // === 저장/불러오기 ===
+    window.onload = () => {
+      const savedInput = localStorage.getItem("inputText");
+      const savedPairs = JSON.parse(localStorage.getItem("wordPairs") || "[]");
+
+      if (savedInput) {
+        document.getElementById("inputText").value = savedInput;
+      }
+
+      if (savedPairs.length > 0) {
+        savedPairs.forEach(([from, to]) => addPair(from, to));
+      } else {
+        addPair();
+        addPair();
+      }
+    };
+
+    function saveToStorage() {
+      const inputText = document.getElementById("inputText").value;
+      localStorage.setItem("inputText", inputText);
+
+      const fromInputs = document.querySelectorAll(".from");
+      const toInputs = document.querySelectorAll(".to");
+
+      const pairs = [];
+      for (let i = 0; i < fromInputs.length; i++) {
+        pairs.push([fromInputs[i].value.trim(), toInputs[i].value.trim()]);
+      }
+
+      localStorage.setItem("wordPairs", JSON.stringify(pairs));
+    }
+
+    document.getElementById("inputText").addEventListener("input", saveToStorage);
+
+    // === 단어쌍 추가/삭제/이동 ===
+    function addPair(fromValue = "", toValue = "") {
       const pair = document.createElement("div");
       pair.className = "pair";
       pair.innerHTML = `
-        <input placeholder="원본 단어" class="from">
-        <input placeholder="수정 단어" class="to">
+        <input placeholder="원본 단어" class="from" value="${fromValue}">
+        <input placeholder="수정 단어" class="to" value="${toValue}">
         <button class="move-btn" onclick="moveUp(this)">↑</button>
         <button class="move-btn" onclick="moveDown(this)">↓</button>
         <button class="delete-btn" onclick="deletePair(this)">❌</button>
       `;
       document.getElementById("wordPairs").appendChild(pair);
+
+      const from = pair.querySelector(".from");
+      const to = pair.querySelector(".to");
+
+      from.addEventListener("input", saveToStorage);
+      to.addEventListener("input", saveToStorage);
     }
 
     function deletePair(button) {
       const pairDiv = button.parentElement;
       pairDiv.remove();
+      saveToStorage();
     }
 
     function moveUp(button) {
@@ -149,6 +182,7 @@
       const previous = current.previousElementSibling;
       if (previous) {
         current.parentNode.insertBefore(current, previous);
+        saveToStorage();
       }
     }
 
@@ -157,11 +191,15 @@
       const next = current.nextElementSibling;
       if (next) {
         current.parentNode.insertBefore(next, current);
+        saveToStorage();
       }
     }
 
+    // === 변환 ===
     function replaceWords() {
       let text = document.getElementById("inputText").value;
+      let display = text;
+
       const fromInputs = document.querySelectorAll(".from");
       const toInputs = document.querySelectorAll(".to");
 
@@ -170,14 +208,16 @@
         const to = toInputs[i].value.trim();
 
         if (from !== "") {
-          const regex = new RegExp(from, "gi"); // 대소문자 구분 없이 전체 치환
-          text = text.replace(regex, to);
+          const regex = new RegExp(from, "gi");
+          display = display.replace(regex, match => `<mark>${to}</mark>`);
         }
       }
 
-      document.getElementById("output").innerText = text;
+      document.getElementById("output").innerHTML = display;
+      saveToStorage();
     }
 
+    // === 복사 ===
     function copyText(id) {
       const element = document.getElementById(id);
       const text = element.value || element.innerText;
